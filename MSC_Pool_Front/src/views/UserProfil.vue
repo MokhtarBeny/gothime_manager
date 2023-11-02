@@ -1,19 +1,14 @@
 <template>
    <v-container class="bg-surface-variant justify-center">
-  <h1> My Profil</h1>
-  <v-row no-gutters align="center">
-    <v-col
-    cols="2">
+
    
   <UserProfilCard/>
-  <ChartDoughnut/>
-</v-col>
-</v-row>
+  <Bar/>
 
 </v-container>
 </template>
 <script setup>
-import ChartDoughnut from '@/components/ChartDoughnut.vue';
+import Bar from '@/components/Bar.vue';
 import UserProfilCard from '@/components/UserProfilCard.vue';
 
 </script>
