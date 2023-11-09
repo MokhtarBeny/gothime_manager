@@ -2,13 +2,13 @@
   <template v-if="user">
     <v-row>
       <v-col cols="6">
-        <!-- <v-select
+        <v-select
           v-model="selectedIndex"
           label="Select User"
           :items="users"
           item-title="username"
           item-value="id"
-        /> -->
+        />
         <v-card class="mx-auto" max-width="1080">
           <v-toolbar flat color="indigo">
             <v-btn icon="mdi-account"></v-btn>
@@ -60,9 +60,20 @@
                 <div class="d-flex flex-column align-center">
                   <div class="mr-2">Clock for {{ user.username }}:</div>
                   <div class="text-h6 mt-2">{{ currentTime }}</div>
-                  <v-btn class="mt-4">
-                    <v-icon class="mr-2">mdi-clock</v-icon>
-                    Clock in now
+                  <v-btn
+                    class="mt-4"
+                    :color="lastClock && lastClock.status ? 'red' : 'green'"
+                    @click="newClock"
+                  >
+                    <v-icon class="mr-2">
+                      {{
+                        lastClock && lastClock.status
+                          ? "mdi-clock-out"
+                          : "mdi-clock-in"
+                      }}
+                    </v-icon>
+
+                    Clock {{ lastClock && lastClock.status ? "out" : "in" }} now
                   </v-btn>
                 </div>
               </v-card-text>
@@ -82,16 +93,15 @@
         </v-row>
       </v-col>
     </v-row>
-    <v-btn @click="click">test</v-btn>
   </template>
 
   <template v-else>
-    <v-btn @click="test"></v-btn>
     <v-skeleton-loader type="card" width="100%" />
   </template>
 </template>
 
 <script>
+import { formatClock, createClock } from "@/services/functions/clock";
 import { useUserStore } from "@/store/users";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "vue-chartjs";
@@ -109,6 +119,7 @@ export default {
     clocks: [],
     currentTime: "",
     memberships: [],
+    lastClock: null,
   }),
   props: {},
   created() {
@@ -116,9 +127,7 @@ export default {
     store.fetchUsers();
     store.fetchTeams();
     store.fetchMemberships();
-    (async () => {
-      this.clocks = await store.fetchClocks(this.selectedIndex);
-    })();
+    this.getClocks();
   },
   watch: {
     selectedIndex(newIndex) {
@@ -194,9 +203,51 @@ export default {
     }
   },
   methods: {
+    getClocks() {
+      const store = useUserStore();
+      (async () => {
+        this.clocks = await store.fetchClocks(this.selectedIndex);
+        console.log(this.clocks);
+        // Assuming this.clocks is an array of clock objects
+        const now = new Date(); // Current time
+        let closestClock = null;
+        let smallestDiff = Number.MAX_VALUE;
+
+        for (const clock of this.clocks) {
+          const clockTime = new Date(clock.time);
+          const diff = Math.abs(clockTime - now); // Difference in milliseconds
+          if (diff < smallestDiff) {
+            smallestDiff = diff;
+            closestClock = clock;
+          }
+        }
+
+        this.lastClock = closestClock; // This will be the clock with the closest time
+        console.log(this.lastClock);
+      })();
+    },
+    newClock() {
+      try {
+        const currentDateTime = new Date().toISOString();
+        const formattedTime = currentDateTime.slice(0, -5) + "Z";
+
+        const formData = formatClock({
+          status: !this.lastClock.status || true,
+          user_id: this.selectedIndex,
+          time: formattedTime,
+        });
+        createClock(formData, [this.refreshData]);
+        console.log("create clock", formData);
+      } catch (e) {
+        console.error(e);
+      }
+    },
+
     refreshData() {
       const store = useUserStore();
-      this.user = store.getUserByID(this.selectedIndex);
+      this.clocks = store.getClocksByUser(this.selectedIndex);
+      this.getClocks();
+
       // this.memberships = store.getMembershipsByUser(this.selectedIndex);
     },
     click() {

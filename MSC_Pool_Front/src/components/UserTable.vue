@@ -89,11 +89,52 @@
       </v-toolbar>
     </template>
 
+    <template v-slot:item.roles="{ item }">
+      <div class="d-flex align-center">
+        <!-- Admin Role -->
+        <v-chip v-if="item.role === 'admin'" color="red" text-color="white">
+          Admin
+        </v-chip>
+
+        <!-- Senior Manager Role -->
+        <template v-else-if="item.role === 'smanager'">
+          <v-chip color="blue" text-color="white" class="mr-2">
+            General Manager
+          </v-chip>
+          <v-btn
+            small
+            size="small"
+            color="blue"
+            @click="promote(item)"
+            class="ml-2"
+          >
+            Promote
+          </v-btn>
+        </template>
+
+        <!-- Manager Role -->
+        <template v-else-if="item.role === 'manager'">
+          <v-chip color="green" text-color="white" class="mr-2">
+            Manager
+          </v-chip>
+          <v-btn
+            size="small"
+            outlined
+            plain
+            color="green"
+            @click="promote(item)"
+            class="ml-2"
+          >
+            Promote
+          </v-btn>
+        </template>
+
+        <!-- User Role -->
+        <v-chip v-else color="grey" text-color="white"> User </v-chip>
+      </div>
+    </template>
+
     <template v-slot:item.actions="{ item }">
-      <v-icon small color="blue" @click="promoteGManager(item)">
-        mdi-pencil
-      </v-icon>
-      <v-icon small color="blue" @click="editItem(item)"> mdi-pencil </v-icon>
       <v-icon small color="red" @click="deleteItem(item)"> mdi-delete </v-icon>
     </template>
 
@@ -141,7 +182,7 @@ export default {
         key: "username",
       },
       { title: "Email", key: "email" },
-      { title: "Role", key: "role" },
+      { title: "Role", key: "roles" },
       { title: "Id", key: "id" },
       { title: "Actions", key: "actions", sortable: false },
     ],
