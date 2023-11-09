@@ -28,7 +28,7 @@
           <v-toolbar flat color="indigo">
             <v-btn icon="mdi-chart-sankey"></v-btn>
             <v-toolbar-title class="font-weight-light">
-              Information about Team
+              Information about the team
             </v-toolbar-title>
             <v-spacer></v-spacer>
 
@@ -545,18 +545,16 @@ export default {
       store.fetchMemberships();
     },
     addUserToTeam() {
-      console.log(this.selectedTeam);
-
-      // try {
-      //   const formData = formatMembership({
-      //     user_id: this.selectedUser,
-      //     team_id: this.selectedIndex,
-      //   });
-      //   createMembership(formData, [this.refreshData]);
-      //   this.selectedUser = null;
-      // } catch (e) {
-      //   console.error(e);
-      // }
+      try {
+        const formData = formatMembership({
+          user_id: this.selectedUser,
+          team_id: this.selectedIndex,
+        });
+        createMembership(formData, [this.refreshData]);
+        this.selectedUser = null;
+      } catch (e) {
+        console.error(e);
+      }
     },
 
     changeUserRole({ user_id }) {

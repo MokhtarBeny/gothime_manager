@@ -90,6 +90,9 @@
     </template>
 
     <template v-slot:item.actions="{ item }">
+      <v-icon small color="blue" @click="promoteGManager(item)">
+        mdi-pencil
+      </v-icon>
       <v-icon small color="blue" @click="editItem(item)"> mdi-pencil </v-icon>
       <v-icon small color="red" @click="deleteItem(item)"> mdi-delete </v-icon>
     </template>
@@ -138,6 +141,7 @@ export default {
         key: "username",
       },
       { title: "Email", key: "email" },
+      { title: "Role", key: "role" },
       { title: "Id", key: "id" },
       { title: "Actions", key: "actions", sortable: false },
     ],
