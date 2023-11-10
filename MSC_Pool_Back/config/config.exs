@@ -35,7 +35,7 @@ config :phoenix, :json_library, Jason
 config :gothime_app, TimeManagerModule.Guardian,
        issuer: "gothime_app",
        ttl: { 30, :days },
-       secret_key: "jXQ6BMh5cFTOMCdCzbDc48zqsBQuWXfthC9vP7+uF63gcwJvcunOcGEXgShVPDwt"
+       secret_key: "VCHI8LUAdjJPeamNHTAR2JdOGF6bTUgo0ZkvUuIg/CfciKVV3qDD4kR3Wit1j04I"
 
 
 # Import environment specific config. This must remain at the bottom

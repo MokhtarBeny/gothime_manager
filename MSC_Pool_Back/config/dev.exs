@@ -3,8 +3,9 @@ import Config
 # Configure your database
 config :gothime_app, TimeManagerModule.Repo,
   username: "postgres",
-  password: "384234",
-  hostname: "localhost",
+  password: "admin",
+  # hostname: "host.docker.internal",
+   hostname: "localhost",
   database: "gothime_app_dev",
   stacktrace: true,
   show_sensitive_data_on_connection_error: true,

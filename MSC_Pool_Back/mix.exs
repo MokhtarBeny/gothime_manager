@@ -5,7 +5,7 @@ defmodule TimeManagerModule.MixProject do
     [
       app: :gothime_app,
       version: "0.1.0",
-      elixir: "~> 1.14",
+      elixir: "~> 1.15.6",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
       aliases: aliases(),
@@ -44,7 +44,7 @@ defmodule TimeManagerModule.MixProject do
       {:plug_cowboy, "~> 2.5"},
       {:guardian, "~> 2.3.2"},
       {:bcrypt_elixir, "~> 3.1.0"},
-      {:cors_plug, "~> 3.0"},
+      {:cors_plug, "~> 3.0"}
     ]
   end
 
