@@ -1,11 +1,13 @@
 # Utilisez une image node pour le frontend
 FROM node:16
 
-# Définissez le répertoire de travail
-WORKDIR /app
-
 # Copiez les fichiers du projet
 COPY . .
+
+# Définissez le répertoire de travail
+WORKDIR /MSC_Pool_Front
+
+
 
 # Installez les dépendances
 RUN npm install
