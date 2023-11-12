@@ -159,4 +159,4 @@ Our security practices are designed to provide a robust defense against various 
 2. [SanLamamba](https://github.com/sanlamamba)
 3. [ quentin-derycke ](https://github.com/quentin-derycke)
 4. [ PaulinDeuxTrois ](https://github.com/PaulinDeuxTrois)
-5. [Name 5](#contributor-5-link) 
+5. [ lotfi8rbh ](https://github.com/lotfi8rbh) 
