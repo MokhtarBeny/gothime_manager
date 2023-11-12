@@ -1,5 +1,6 @@
 // Utilities
 import { defineStore } from "pinia";
+import CryptoJS from "crypto-js";
 
 import axios from "axios";
 import { Vite_API_URL } from "@/services/url";
@@ -43,25 +44,59 @@ export const useUserStore = defineStore("user", {
   setters: {},
   actions: {
     getAuth() {
-      const token = JSON.parse(window.localStorage.getItem("token"));
-      const user = JSON.parse(window.localStorage.getItem("user"));
-      this.auth = {
-        user,
-        token,
-      };
-      return {
-        user,
-        token,
-      };
+      // Define a secret key for decryption
+      const secretKey = "your-very-own-secret-key"; // Use the same key used for encryption
+
+      // Retrieve encrypted data from local storage
+      const encryptedToken = window.localStorage.getItem("y");
+      const encryptedUser = window.localStorage.getItem("x");
+
+      // Decrypt data
+      let token = null;
+      let user = null;
+
+      if (encryptedToken) {
+        const bytesToken = CryptoJS.AES.decrypt(encryptedToken, secretKey);
+        token = JSON.parse(bytesToken.toString(CryptoJS.enc.Utf8));
+      }
+
+      if (encryptedUser) {
+        const bytesUser = CryptoJS.AES.decrypt(encryptedUser, secretKey);
+        user = JSON.parse(bytesUser.toString(CryptoJS.enc.Utf8));
+      }
+
+      // Update auth state
+      this.auth = { user, token };
+
+      // Return decrypted user and token
+      return { user, token };
     },
     setAuth(user, token) {
       console.log("setAuth", user, token);
+      // Define a secret key for encryption
+      const secretKey = "your-very-own-secret-key"; // Change this to a unique secret key
+
+      // Encrypt data
+      const encryptedUser = CryptoJS.AES.encrypt(
+        JSON.stringify(user),
+        secretKey
+      ).toString();
+      const encryptedToken = CryptoJS.AES.encrypt(
+        JSON.stringify(token),
+        secretKey
+      ).toString();
+
+      // Set encrypted data in local storage
+      window.localStorage.setItem("x", encryptedUser);
+      window.localStorage.setItem("y", encryptedToken);
+
+      // Update auth state
       this.auth.user = user;
       this.auth.token = token;
-      window.localStorage.setItem("user", JSON.stringify(user));
-      window.localStorage.setItem("token", JSON.stringify(token));
     },
     setUsers(users) {
+      if (this.auth.user.role !== "admin")
+        users = users.filter((u) => u.role !== "admin");
       this.users = users;
     },
     setSchedules(schedules) {

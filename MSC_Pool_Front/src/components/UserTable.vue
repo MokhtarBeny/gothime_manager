@@ -15,7 +15,7 @@
           <template v-slot:activator="{ props }">
             <v-btn color="primary" dark class="mb-2" v-bind="props">
               Ajouter
-              <v-icon size="small" class="me-2 ml-2" @click="editItem(item)">
+              <v-icon size="small" class="me-2 ml-2">
                 mdi-plus-circle-outline
               </v-icon>
             </v-btn>
@@ -42,13 +42,16 @@
                     />
                   </v-col>
                   <v-col cols="12" sm="12" md="12">
-                    <v-select
-                      v-model="editedItem.team_id"
-                      chips
-                      label="User Team"
-                      :items="teams"
-                      item-title="name"
-                      item-value="id"
+                    <v-text-field
+                      v-model="editedItem.password_hash"
+                      label="Password"
+                      :type="showPassword ? 'text' : 'password'"
+                      :prepend-inner-icon="
+                        showPassword ? 'mdi-eye' : 'mdi-eye-off'
+                      "
+                      @click:prepend-inner="showPassword = !showPassword"
+                      append-inner-icon="mdi-lock"
+                      @click:append-inner="generateRandomPassword"
                     />
                   </v-col>
                 </v-row>
@@ -82,6 +85,7 @@
                 @click="deleteItemConfirm"
                 >OK</v-btn
               >
+
               <v-spacer></v-spacer>
             </v-card-actions>
           </v-card>
@@ -92,9 +96,18 @@
     <template v-slot:item.roles="{ item }">
       <div class="d-flex align-center">
         <!-- Admin Role -->
-        <v-chip v-if="item.role === 'admin'" color="red" text-color="white">
-          Admin
-        </v-chip>
+        <template v-if="item.role === 'admin'">
+          <v-chip color="red" text-color="white"> Admin </v-chip>
+          <v-btn
+            small
+            size="small"
+            color="red"
+            @click="demote(item)"
+            class="ml-2"
+          >
+            demote
+          </v-btn>
+        </template>
 
         <!-- Senior Manager Role -->
         <template v-else-if="item.role === 'smanager'">
@@ -102,6 +115,7 @@
             General Manager
           </v-chip>
           <v-btn
+            v-if="userInfo?.role === 'admin'"
             small
             size="small"
             color="blue"
@@ -109,6 +123,15 @@
             class="ml-2"
           >
             Promote
+          </v-btn>
+          <v-btn
+            small
+            size="small"
+            color="red"
+            @click="demote(item)"
+            class="ml-2"
+          >
+            demote
           </v-btn>
         </template>
 
@@ -135,7 +158,19 @@
     </template>
 
     <template v-slot:item.actions="{ item }">
-      <v-icon small color="red" @click="deleteItem(item)"> mdi-delete </v-icon>
+      <!-- <v-icon small color="blue" @click="editedItem(item)"> mdi-pencil </v-icon> -->
+      <v-icon
+        small
+        v-if="item.is_visible && item.role !== 'admin'"
+        color="red"
+        @click="deleteItem(item)"
+      >
+        mdi-delete
+      </v-icon>
+      <v-chip v-else color="grey" text-color="white"> deleted </v-chip>
+      <!-- <v-btn small v-else color="red" @click="deleteItem(item, reactivate)">
+        Reactivate
+      </v-btn> -->
     </template>
 
     <template v-slot:no-data>
@@ -174,6 +209,7 @@ export default {
     error: "Un message !!!",
     dialog: false,
     dialogDelete: false,
+    showPassword: false,
     headers: [
       {
         title: "Username",
@@ -191,13 +227,17 @@ export default {
       id: null,
       username: "",
       email: "",
-      team_id: null,
+      password_hash: "",
+      is_visible: true,
+      role: "user",
     },
     defaultItem: {
       id: null,
       username: "",
       email: "",
-      team_id: null,
+      password_hash: "",
+      is_visible: true,
+      role: "user",
     },
   }),
 
@@ -232,6 +272,15 @@ export default {
   },
 
   methods: {
+    generateRandomPassword() {
+      const chars =
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()";
+      let password = "";
+      for (let i = 0; i < 10; i++) {
+        password += chars.charAt(Math.floor(Math.random() * chars.length));
+      }
+      this.editedItem.password_hash = password;
+    },
     showSnackBar(message) {
       this.snackbar = true;
       this.error = message;
@@ -249,7 +298,6 @@ export default {
       this.editedIndex = data.user.id;
       this.editedItem = { ...data.user };
       console.log(this.editedItem);
-      this.dialog = true;
     },
 
     deleteItem(item) {
@@ -272,6 +320,34 @@ export default {
         this.editedIndex = -1;
       });
     },
+    promote(item) {
+      console.log(item);
+      const formData = formatUser(item);
+      const newRole = () => {
+        if (item.role === "smanager") {
+          return "admin";
+        } else if (item.role === "manager") {
+          return "smanager";
+        }
+        return item.role;
+      };
+      formData.user.role = newRole();
+      updateUser({ ...formData }, [this.refreshData]);
+    },
+    demote(item) {
+      const formData = formatUser(item);
+      const newRole = () => {
+        if (item.role === "admin") {
+          return "smanager";
+        } else if (item.role === "smanager") {
+          return "admin";
+        }
+        return item.role;
+      };
+      formData.user.role = newRole();
+      updateUser({ ...formData }, [this.refreshData]);
+    },
+
     closeDelete() {
       this.dialogDelete = false;
       this.$nextTick(() => {
@@ -279,12 +355,20 @@ export default {
         this.editedIndex = -1;
       });
     },
+
     save() {
       if (this.editedIndex > -1) {
-        const formData = formatUser(this.editedItem);
+        const formData = formatUser({
+          ...this.editedItem,
+          password: this.editedItem.password_hash,
+        });
+        console.log(formData);
         updateUser(formData, [this.refreshData]);
       } else {
-        const formData = formatUser(this.editedItem);
+        const formData = formatUser({
+          ...this.editedItem,
+          password: this.editedItem.password_hash,
+        });
         createUser(formData, [this.refreshData]);
       }
       this.close();
