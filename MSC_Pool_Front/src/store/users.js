@@ -21,6 +21,9 @@ export const useUserStore = defineStore("user", {
     getUsers(state) {
       return state.users;
     },
+    getSchedulesByUser(state) {
+      return state.schedules
+    },
     getUser(state, userID) {
       const data = {
         user: null,
@@ -55,12 +58,14 @@ export const useUserStore = defineStore("user", {
       let token = null;
       let user = null;
 
-      if (encryptedToken) {
+      if (encryptedToken)
+      {
         const bytesToken = CryptoJS.AES.decrypt(encryptedToken, secretKey);
         token = JSON.parse(bytesToken.toString(CryptoJS.enc.Utf8));
       }
 
-      if (encryptedUser) {
+      if (encryptedUser)
+      {
         const bytesUser = CryptoJS.AES.decrypt(encryptedUser, secretKey);
         user = JSON.parse(bytesUser.toString(CryptoJS.enc.Utf8));
       }
@@ -102,6 +107,9 @@ export const useUserStore = defineStore("user", {
     setSchedules(schedules) {
       this.schedules = schedules;
     },
+    setSchedulesByUser(schedules) {
+      this.schedules = schedules;
+ },
     setClocks(clocks) {
       this.clocks = clocks;
     },
@@ -119,6 +127,7 @@ export const useUserStore = defineStore("user", {
       const memberships = this.memberships.filter((m) => m.user_id === userID);
       return memberships;
     },
+
     getData() {
       this.fetchUsers();
       this.fetchTeams();
@@ -127,68 +136,95 @@ export const useUserStore = defineStore("user", {
       this.fetchAllClocks();
     },
     async fetchUsers() {
-      try {
+      try
+      {
         const response = await axios.get(Vite_API_URL + "users/all");
         // const filteredData = response.data.data.filter((u) => !u.is_visible);
         this.setUsers(response.data.data);
-      } catch (error) {
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }
     },
     async fetchSchedules() {
-      try {
+      try
+      {
         const response = await axios.get(Vite_API_URL + "schedules");
         this.setSchedules(response.data.data);
-      } catch (error) {
+      } catch (error)
+      {
+        alert(error);
+        console.group(error);
+      }
+    },
+    async fetchSchedulesByUser(userId, startTime, endTime) {
+      try
+      {
+        const apiUrl = `${Vite_API_URL}schedules/${userId}?start_time=${startTime}&end_time=${endTime}`;
+        const response = await axios.get(apiUrl);
+        console.log(response.data.data)
+        this.setSchedulesByUser(response.data.data);
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }
     },
 
     async fetchClocks(user_id) {
-      try {
+      try
+      {
         const response = await axios.get(
           Vite_API_URL + `clocks/?user_id=${user_id}`
         );
         return response.data.data;
-      } catch (error) {
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }
     },
     async fetchTeams() {
-      try {
+      try
+      {
         const response = await axios.get(Vite_API_URL + "teams");
         this.setTeams(response.data.data);
-      } catch (error) {
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }
     },
     async fetchUser(userID) {
-      try {
+      try
+      {
         const response = await axios.get(Vite_API_URL + `users/${userID}`);
         this.setUsers(response.data.data);
-      } catch (error) {
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }
     },
     async fetchMemberships() {
-      try {
+      try
+      {
         const response = await axios.get(Vite_API_URL + "memberships");
         this.setMemberships(response.data.data);
-      } catch (error) {
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }
     },
     async fetchAllClocks() {
-      try {
+      try
+      {
         const response = await axios.get(Vite_API_URL + "clocks/all");
         this.setClocks(response.data.data);
-      } catch (error) {
+      } catch (error)
+      {
         alert(error);
         console.group(error);
       }

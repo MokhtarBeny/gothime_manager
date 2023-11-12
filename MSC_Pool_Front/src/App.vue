@@ -34,7 +34,6 @@
       <v-divider class="white"></v-divider>
       <!-- Navigation Routes -->
       <v-list dense>
-        <v-list-item title="Dashboard" prepend-icon="mdi-home" to="/" />
         <v-list-item
           title="Profil"
           prepend-icon="mdi-account-circle"
@@ -97,25 +96,7 @@
     <v-main>
       <router-view />
     </v-main>
-    <v-bottom-navigation :elevation="3" grow>
-      <v-btn value="recent">
-        <v-icon>mdi-history</v-icon>
-
-        <span>Recent</span>
-      </v-btn>
-
-      <v-btn value="favorites">
-        <v-icon>mdi-heart</v-icon>
-
-        <span>Favorites</span>
-      </v-btn>
-
-      <v-btn value="nearby">
-        <v-icon>mdi-map-marker</v-icon>
-
-        <span>Nearby</span>
-      </v-btn>
-    </v-bottom-navigation>
+   
   </v-app>
   <v-app v-else class="bg-blue">
     <v-snackbar v-model="snackbar">
