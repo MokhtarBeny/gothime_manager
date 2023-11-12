@@ -18,8 +18,38 @@
 ## 📌 Overview
 This project is a time manager specifically designed for Gotham City. It helps in tracking the working hours and schedules of each user. The application is divided into two main parts: the backend and the frontend.
 
+### Summary of Key Components
+Our application encompasses seven main components, each playing a vital role in its functionality and user experience:
+
+1. **API**: Provides backend services and endpoints for data management and retrieval with Phoenix and Elixir.
+2. **Web Interface**: A user-friendly frontend developed with Vue.js and Vuetify, offering a seamless and responsive user experience.
+3. **DevOps**: Involves continuous integration and delivery practices, using tools like Docker and GitHub Actions to streamline development and deployment.
+4. **Design Thinking**: Focuses on user-centric design and development, integrating user feedback into continuous improvement of the application.
+5. **Authentication**: Secure user authentication system, handling different user roles such as admin, general manager, manager, and regular user.
+6. **Mobile**: Ensures the application is responsive and adaptable to various devices, utilizing technologies like Capacitor for cross-platform functionality.
+7. **Security**: Prioritizes the protection of user data through encryption, hashing, and continuous security monitoring.
+
+Each of these components contributes to the overall effectiveness and efficiency of the Gotham City Time Manager.
+
+
 ## 🔙 Backend - MSC_Pool_Back
-The backend of this application, named `MSC_Pool_Back`, is built using Phoenix Elixir 🧪. It provides robust API endpoints for managing user data and their respective schedules. The authentication is handled securely using `Guardian` 🔒 and `bcrypt`, ensuring that user data remains safe and secure.
+The backend of this application, named `MSC_Pool_Back`, is built using Phoenix Elixir 🧪. It provides API endpoints for managing user data and their respective schedules. The authentication is handled securely using `Guardian` 🔒 and `bcrypt`, ensuring that user data remains safe and secure.
+### Project and Database Setup Commands
+Below are the commands used for setting up the project and creating the various database tables:
+
+```shell
+mix phx.new gothime_manager --app gothime_app --module TimeManagerModule --no-html --no-assets --database postgres --no-mailer --no-live --no-dashboard
+
+mix phx.gen.json Account User users username:string email:string:unique is_visible:boolean team_id:references:teams password_hash:string
+
+mix phx.gen.json Account Team teams name:string:unique description:string
+
+mix phx.gen.json Account Membership memberships team_id:references:teams user_id:references:users
+
+mix phx.gen.json Time Clock clocks time:naive_datetime status:boolean user_id:references:users
+
+mix phx.gen.json Time Schedule schedules start_time:naive_datetime end_time:naive_datetime user_id:references:users
+```
 ### Database Tables
 Our backend leverages several key tables to manage data efficiently. The structure of these tables is as follows:
 
@@ -90,12 +120,34 @@ Below are screenshots showcasing various aspects of our application's interface:
 6. **Manage My Team**
    ![Manage My Team](https://zupimages.net/up/23/45/lrv2.png)
 
+
+### Additional Frontend Tools
+In addition to the core technologies, our application utilizes several other tools to enhance functionality and user experience:
+
+- **Pinia**: Manages the application's state in a centralized store, ensuring reactive and consistent state management across components.
+- **Vue Router**: Facilitates navigation and routing within the SPA, contributing to a smooth and seamless user experience.
+- **Mdi Icons**: Provides a rich set of icons, enhancing the visual appeal and user interface of our application.
+- **V-Calendar**: Integrated for handling date and time-related functionalities, offering a user-friendly calendar interface.
+- **Vue-Chartjs**: Utilized for rendering responsive and interactive charts, useful for data visualization tasks.
+- **Axios**: Employed for making HTTP requests to the backend, enabling efficient data fetching and state updates.
+
+These tools collectively contribute to the robustness and feature-rich nature of our frontend.
+
+### Protected Routes
+To ensure security and appropriate access control, our application implements protected routes:
+
+- **Token-Based Authentication**: Routes are secured using token-based authentication. Users must be authenticated to access certain parts of the application.
+- **Role-Based Access**: Access to specific routes is also determined based on user roles. For example, admin routes are inaccessible to regular users. This role-based protection aligns the application's functionality with the user's permissions and responsibilities.
+
+
+This approach to route protection is crucial in maintaining the integrity and security of our application, ensuring that users only access content and functionalities relevant to their roles.
+
 ## 🛠️ DevOps
 ### ⚙️ GitHub Actions
 GitHub Actions are integral to the continuous integration and deployment pipeline of our project. They automate the process of building and pushing Docker images to Docker Hub. This ensures that the latest build of our application is readily available for deployment. The workflow is set up to trigger on pushes or pull requests, allowing for consistent and up-to-date Docker images with every code update.
 
 ### 🐳 Docker Images
-Find the Docker images for this project on Docker Hub: [Docker Hub Link](https://hub.docker.com/r/lamamb/gothime_manager)
+Find the Docker images for thiauts project on Docker Hub: [Docker Hub Link](https://hub.docker.com/r/lamamb/gothime_manager)
 
 ### 🌍 Hosting and Repository
 - **Git Repository**: [GitHub Link](https://github.com/MokhtarBeny/gothime_manager)
