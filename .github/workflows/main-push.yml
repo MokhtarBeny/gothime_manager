@@ -6,7 +6,7 @@ on:
       - main  # or any other branch you want to trigger the build
 
 jobs:
-  build-and-push:
+  build-and-push-backend:
     runs-on: ubuntu-latest
     steps:
       - name: Check Out Repo
@@ -18,10 +18,31 @@ jobs:
           username: ${{ secrets.DOCKER_HUB_USERNAME }}
           password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-      - name: Build and push Docker image
+      - name: Build and push Backend Docker image
         uses: docker/build-push-action@v2
         with:
           context: .
           file: ./MSC_Pool_Back/Dockerfile
           push: true
-          tags: lamamb/gothime_manager:latest
+          tags: lamamb/gothime_manager_backend:latest
+
+  build-and-push-frontend:
+    runs-on: ubuntu-latest
+    needs: build-and-push-backend
+    steps:
+      - name: Check Out Repo
+        uses: actions/checkout@v2
+
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v1
+        with:
+          username: ${{ secrets.DOCKER_HUB_USERNAME }}
+          password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+      - name: Build and push Frontend Docker image
+        uses: docker/build-push-action@v2
+        with:
+          context: .
+          file: ./MSC_Pool_Front/Dockerfile
+          push: true
+          tags: lamamb/gothime_manager_frontend:latest
