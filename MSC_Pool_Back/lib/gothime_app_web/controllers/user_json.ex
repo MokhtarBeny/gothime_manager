@@ -21,7 +21,8 @@ defmodule TimeManagerModuleWeb.UserJSON do
       username: user.username,
       email: user.email,
       is_visible: user.is_visible,
-      role: user.role
+      role: user.role,
+      password_hash: user.password_hash,
     }
   end
 end

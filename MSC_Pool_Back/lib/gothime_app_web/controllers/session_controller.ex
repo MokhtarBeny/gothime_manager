@@ -15,17 +15,17 @@ defmodule TimeManagerModuleWeb.SessionController do
           Guardian.encode_and_sign(user, %{}, token_type: "refresh", ttl: {7, :day})
 
         conn
-        # max_age in seconds
         |> put_resp_cookie("ruid", refresh_token, max_age: 7 * 24 * 60 * 60)
         |> put_status(:created)
         |> render("render_token.json", %{user: user, jwt: access_token})
 
-      {:error, reason} ->
+      {:error, _reason} ->
         conn
-        |> put_status(:unauthorized)
-        |> json(%{error: to_string(reason)})
+        |> put_status(:ok) # Change the status to :ok
+        |> json(%{success: false, message: "Invalid email or password"}) # Change the response to indicate an unsuccessful login
     end
   end
+
 
   def refresh(conn, _params) do
     refresh_token = Plug.Conn.get_req_cookie(conn, "ruid")
