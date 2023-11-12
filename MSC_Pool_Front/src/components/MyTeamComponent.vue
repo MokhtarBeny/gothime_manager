@@ -1,8 +1,9 @@
 <template>
   <template v-if="user">
-    <v-row v-if="true">
+    <v-row>
       <v-col cols="6">
         <v-select
+          v-if="userInfo.role === 'admin' || userInfo.role === 'smanager'"
           v-model="selectedIndex"
           label="Select Team"
           :items="teams"
@@ -30,23 +31,23 @@
             <v-toolbar-title class="font-weight-light">
               Information about the team
             </v-toolbar-title>
-            <v-spacer></v-spacer>
-
+            <!-- <v-spacer></v-spacer> -->
+            <!-- 
             <v-btn icon @click="isEditing = !isEditing">
               <v-fade-transition leave-absolute>
                 <v-icon v-if="isEditing">mdi-close</v-icon>
 
                 <v-icon v-else>mdi-pencil</v-icon>
               </v-fade-transition>
-            </v-btn>
+            </v-btn> -->
           </v-toolbar>
-          <v-card-text>
+          <!-- <v-card-text>
             <v-row>
               <v-col cols="12">
                 <Bar v-if="loaded" :data="chartData" :options="chartOptions" />
               </v-col>
             </v-row>
-          </v-card-text>
+          </v-card-text> -->
           <v-divider />
 
           <v-divider />
@@ -145,6 +146,7 @@
             </span>
             <span v-else>
               <v-icon
+                v-if="userInfo.role === 'admin' || userInfo.role === 'smanager'"
                 color="primary primary-2"
                 class="mr-2"
                 @click.stop="managerDialogItem(item)"
@@ -236,6 +238,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default {
   data: () => ({
+    userInfo: null,
     pointer: null,
     shifts: null,
     selectedTeam: null,
@@ -294,6 +297,21 @@ export default {
   props: {},
   created() {
     const store = useUserStore(); // Use the store within the component's context
+    const user = store.getAuth().user;
+    this.userInfo = user;
+    console.log(this.userInfo);
+    const allowedRoles = ["manager", "admin", "smanager"];
+    if (!allowedRoles.includes(user.role)) {
+      this.$router.push("/unauthorized");
+    }
+
+    // find the team with manager_id of this user id
+    if (user.role === "manager") {
+      const team = this.teams.find((t) => t.manager_id === user.id);
+      this.selectedIndex = team.id;
+      console.log("EPIC : ", team);
+    }
+
     store.fetchUsers();
     store.fetchTeams();
     store.fetchMemberships();
@@ -417,14 +435,19 @@ export default {
       const teamSchedules = schedules
         .filter((schedule) => userIDsInTeam.has(schedule.user_id))
         .map((schedule) => {
+          const user = usersInThisTeam.find((u) => u.id === schedule.user_id);
           const startTime = new Date(schedule.start_time);
           const endTime = new Date(schedule.end_time);
           const hourDiff = (endTime - startTime) / (1000 * 60 * 60); // Difference in hours
+
           return {
             ...schedule,
+            username: user ? user.username : "Unknown", // Add username to the schedule
             hourDiff: parseFloat(hourDiff.toFixed(2)), // Rounds the hour difference to two decimal places
           };
         });
+
+      console.log(teamSchedules);
       return teamSchedules;
     },
     teamClocks() {

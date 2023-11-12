@@ -2,28 +2,28 @@
   <template v-if="user">
     <v-row>
       <v-col cols="6">
-        <v-select
+        <!-- <v-select
           v-model="selectedIndex"
           label="Select User"
           :items="users"
           item-title="username"
           item-value="id"
-        />
+        /> -->
         <v-card class="mx-auto" max-width="1080">
           <v-toolbar flat color="indigo">
             <v-btn icon="mdi-account"></v-btn>
             <v-toolbar-title class="font-weight-light">
-              My Account {{ selectedIndex }}
+              My Account {{ userinfo.id }}
             </v-toolbar-title>
             <v-spacer></v-spacer>
-
+            <!-- 
             <v-btn icon @click="isEditing = !isEditing">
               <v-fade-transition leave-absolute>
                 <v-icon v-if="isEditing">mdi-close</v-icon>
 
                 <v-icon v-else>mdi-pencil</v-icon>
               </v-fade-transition>
-            </v-btn>
+            </v-btn> -->
           </v-toolbar>
 
           <v-card-text>
@@ -45,7 +45,7 @@
           <v-divider />
           <v-card-actions>
             <v-spacer />
-            <v-btn :disabled="!isEditing" @click="save"> Save </v-btn>
+            <!-- <v-btn :disabled="!isEditing" @click="save"> Save </v-btn> -->
           </v-card-actions>
           <v-snackbar v-model="hasSaved" :timeout="2000">
             Your profile has been updated
@@ -62,18 +62,20 @@
                   <div class="text-h6 mt-2">{{ currentTime }}</div>
                   <v-btn
                     class="mt-4"
-                    :color="lastClock && lastClock.status ? 'red' : 'green'"
+                    :color="
+                      lastClockStatus && lastClockStatus ? 'red' : 'green'
+                    "
                     @click="newClock"
                   >
                     <v-icon class="mr-2">
                       {{
-                        lastClock && lastClock.status
+                        lastClockStatus && lastClockStatus
                           ? "mdi-clock-out"
                           : "mdi-clock-in"
                       }}
                     </v-icon>
-
-                    Clock {{ lastClock && lastClock.status ? "out" : "in" }} now
+                    Clock
+                    {{ lastClockStatus && lastClockStatus ? "out" : "in" }} now
                   </v-btn>
                 </div>
               </v-card-text>
@@ -110,6 +112,7 @@ ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default {
   data: () => ({
+    userInfo: null,
     chartData: null,
     loaded: false,
     hasSaved: false,
@@ -119,7 +122,7 @@ export default {
     clocks: [],
     currentTime: "",
     memberships: [],
-    lastClock: null,
+    lastClockStatus: true,
   }),
   props: {},
   created() {
@@ -157,7 +160,11 @@ export default {
     },
     user() {
       const store = useUserStore();
-      return store.getUserByID(this.selectedIndex);
+      return store.getAuth().user;
+    },
+    userinfo() {
+      const store = useUserStore();
+      return store.getAuth().user;
     },
   },
   mounted() {
@@ -204,40 +211,42 @@ export default {
   },
   methods: {
     getClocks() {
-      const store = useUserStore();
-      (async () => {
-        this.clocks = await store.fetchClocks(this.selectedIndex);
-        console.log(this.clocks);
-        // Assuming this.clocks is an array of clock objects
-        const now = new Date(); // Current time
-        let closestClock = null;
-        let smallestDiff = Number.MAX_VALUE;
-
-        for (const clock of this.clocks) {
-          const clockTime = new Date(clock.time);
-          const diff = Math.abs(clockTime - now); // Difference in milliseconds
-          if (diff < smallestDiff) {
-            smallestDiff = diff;
-            closestClock = clock;
+      try {
+        const store = useUserStore();
+        (async () => {
+          const clocks = await store.fetchAllClocks();
+          const userClocks = clocks.filter(
+            (clock) => clock.user_id === this.selectedIndex
+          );
+          this.clocks = userClocks;
+          const now = new Date().getTime();
+          let closestClock = null;
+          let smallestDiff = Number.MAX_VALUE;
+          for (const clock of this.clocks) {
+            const clockTime = new Date(clock.time).getTime();
+            const diff = Math.abs(clockTime - now); // Difference in milliseconds
+            if (diff < smallestDiff) {
+              smallestDiff = diff;
+              closestClock = clock;
+            }
           }
-        }
-
-        this.lastClock = closestClock; // This will be the clock with the closest time
-        console.log(this.lastClock);
-      })();
+          this.lastClockStatus = closestClock.status;
+        })();
+      } catch (e) {
+        console.log();
+      }
     },
     newClock() {
       try {
         const currentDateTime = new Date().toISOString();
         const formattedTime = currentDateTime.slice(0, -5) + "Z";
-
         const formData = formatClock({
-          status: !this.lastClock.status || true,
+          status: !this.lastClockStatus,
           user_id: this.selectedIndex,
           time: formattedTime,
         });
         createClock(formData, [this.refreshData]);
-        console.log("create clock", formData);
+        this.lastClockStatus = !this.lastClockStatus;
       } catch (e) {
         console.error(e);
       }
@@ -246,9 +255,8 @@ export default {
     refreshData() {
       const store = useUserStore();
       this.clocks = store.getClocksByUser(this.selectedIndex);
+      store.fetchAllClocks();
       this.getClocks();
-
-      // this.memberships = store.getMembershipsByUser(this.selectedIndex);
     },
     click() {
       console.log(this.memberships);
@@ -299,17 +307,14 @@ export default {
       });
     },
     updateUserFromIndex(index) {
-      // Find the user in the users array based on the selected index
       const selectedUser = this.users[index];
       if (selectedUser) {
-        // Update the user data with the selected user
         this.user = {
           id: selectedUser.id,
           username: selectedUser.username,
           email: selectedUser.email,
           role: selectedUser.role,
         };
-        // You can also update the selectedTeamIds if needed
         this.selectedTeamIds = selectedUser.teamIds;
       }
     },
