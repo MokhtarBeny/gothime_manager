@@ -19,7 +19,8 @@ defmodule TimeManagerModuleWeb.ScheduleJSON do
     %{
       id: schedule.id,
       start_time: schedule.start_time,
-      end_time: schedule.end_time
+      end_time: schedule.end_time,
+      user_id: schedule.user_id,
     }
   end
 end

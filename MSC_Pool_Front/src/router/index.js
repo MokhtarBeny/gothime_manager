@@ -6,6 +6,7 @@ import MyCalendar from "../views/MyCalendar.vue";
 import MyTeam from "../views/MyTeam.vue";
 import Teams from "../views/TeamTables.vue";
 import ManageTeam from "../views/ManageTeam.vue";
+import NotAuthorized from "../views/NotAuthorized.vue";
 const routes = [
   {
     path: "/",
@@ -30,6 +31,10 @@ const routes = [
   {
     path: "/manage/team",
     component: ManageTeam,
+  },
+  {
+    path: "/unauthorized",
+    component: NotAuthorized,
   },
 ];
 

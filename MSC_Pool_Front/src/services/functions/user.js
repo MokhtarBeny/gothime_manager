@@ -8,19 +8,14 @@ export const ROLE_ENUM = {
   user: "user",
 };
 
-export function formatUser(
-  userData,
-  role = "user",
-  is_visible = true,
-  password = true
-) {
+export function formatUser(userData, role = "user", is_visible = true) {
   const formData = {
     user: {},
   };
   formData.user.id = userData.id;
   formData.user.username = userData.username;
   formData.user.email = userData.email;
-  if (password) formData.user.password_hash = userData.password;
+  formData.user.password_hash = userData.password_hash;
   formData.user.role = role || ROLE_ENUM["user"];
   formData.user.is_visible = is_visible || true;
 
@@ -47,14 +42,19 @@ export async function updateUser(data, callbacks = [], error_callbacks = []) {
   }
 }
 
-export async function deleteUser(data, callbacks = [], error_callbacks = []) {
+export async function deleteUser(
+  data,
+  callbacks = [],
+  error_callbacks = [],
+  reactivate = false
+) {
   const newData = {
     user: {
       id: data.user.id,
       username: data.user.username,
       email: data.user.email,
       team_id: data.user.team_id,
-      is_visible: false,
+      is_visible: reactivate || false,
     },
   };
   try {
