@@ -61,6 +61,7 @@
                   <div class="mr-2">Clock for {{ user.username }}:</div>
                   <div class="text-h6 mt-2">{{ currentTime }}</div>
                   <v-btn
+                    v-if="canClock"
                     class="mt-4"
                     :color="
                       lastClockStatus && lastClockStatus ? 'red' : 'green'
@@ -77,6 +78,10 @@
                     Clock
                     {{ lastClockStatus && lastClockStatus ? "out" : "in" }} now
                   </v-btn>
+                  <v-progress-circular
+                    v-else
+                    indeterminate
+                  ></v-progress-circular>
                 </div>
               </v-card-text>
             </v-card>
@@ -108,6 +113,10 @@ import { useUserStore } from "@/store/users";
 import { Chart as ChartJS, ArcElement, Tooltip, Legend } from "chart.js";
 import { Doughnut } from "vue-chartjs";
 
+import clockInSound from "@/assets/clockIn.mp3";
+import clockOutSound from "@/assets/clockOut.mp3";
+import fail from "@/assets/fail.mp3";
+
 ChartJS.register(ArcElement, Tooltip, Legend);
 
 export default {
@@ -123,8 +132,17 @@ export default {
     currentTime: "",
     memberships: [],
     lastClockStatus: true,
+    canClock: true,
+    sound: {
+      clockIn: new Audio(clockInSound),
+      clockOut: new Audio(clockOutSound),
+      fail: new Audio(fail),
+    },
   }),
   props: {},
+  beforeUnmount() {
+    document.removeEventListener("keydown", this.handleKeydown);
+  },
   created() {
     const store = useUserStore(); // Use the store within the component's context
     store.fetchUsers();
@@ -168,6 +186,8 @@ export default {
     },
   },
   mounted() {
+    document.addEventListener("keydown", this.handleKeydown);
+
     this.startClock();
     this.loaded = false;
     const store = useUserStore();
@@ -237,19 +257,59 @@ export default {
       }
     },
     newClock() {
-      try {
-        const currentDateTime = new Date().toISOString();
-        const formattedTime = currentDateTime.slice(0, -5) + "Z";
-        const formData = formatClock({
-          status: !this.lastClockStatus,
-          user_id: this.selectedIndex,
-          time: formattedTime,
-        });
-        createClock(formData, [this.refreshData]);
-        this.lastClockStatus = !this.lastClockStatus;
-      } catch (e) {
-        console.error(e);
+      if (this.canClock) {
+        this.canClock = false; // Prevents clocking again until 10 seconds have passed
+
+        try {
+          const currentDateTime = new Date().toISOString();
+          const formattedTime = currentDateTime.slice(0, -5) + "Z";
+          const formData = formatClock({
+            status: !this.lastClockStatus,
+            user_id: this.selectedIndex,
+            time: formattedTime,
+          });
+
+          // Assuming createClock is an asynchronous function
+          createClock(formData, [this.refreshData])
+            .then(() => {
+              // Handle success if needed
+            })
+            .catch((e) => {
+              console.error(e); // Handle error
+            });
+
+          this.lastClockStatus = !this.lastClockStatus;
+        } catch (e) {
+          console.error(e); // Handle synchronous errors
+        }
+
+        // Set a timeout to re-enable clocking after 10 seconds
+        setTimeout(() => {
+          this.canClock = true;
+        }, 10000); // 10 seconds delay
       }
+    },
+
+    handleKeydown(e) {
+      if (e.ctrlKey && e.shiftKey && e.key.toLowerCase() === "u") {
+        e.preventDefault(); // Prevents the default action of the key
+        if (!this.canClock) return this.playSound(false, true);
+        this.playSound(this.lastClockStatus);
+        this.newClock();
+      }
+    },
+    playSound(type = true, special = false) {
+      if (special) {
+        this.audio = this.sound.fail;
+        this.audio.play();
+        return;
+      }
+      if (type == true) {
+        this.audio = this.sound.clockIn;
+      } else {
+        this.audio = this.sound.clockOut;
+      }
+      this.audio.play();
     },
 
     refreshData() {
